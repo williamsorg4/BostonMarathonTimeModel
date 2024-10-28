@@ -4,10 +4,6 @@ library(RSelenium)
 library(netstat)
 library(wdman)
 
-chromeCommand <- chrome(retcommand = T, verbose = F, check = F)
-
-
-
 
 result_links <- c("https://results.baa.org/2024/?pid=leaderboard&pidp=leaderboard",
                   "https://results.baa.org/2023/?pid=leaderboard&pidp=leaderboard",
@@ -37,7 +33,6 @@ remDr$open()
 # 2024 --------------------------------------------------------------
 
 remDr$navigate("https://results.baa.org/2024/?pid=start&pidp=start")
-
 
 
 
@@ -138,9 +133,22 @@ for(link in allrunnerslinks2){
   print(i)
 }
 
+test <- results2024 %>% 
+  mutate(test = as.integer(`Bib Number`)) %>% 
+  filter(is.na(test))
 
 
 saveRDS(results2024, "results2024.rds")
 
 
 # 2023 --------------------------------------------------------------------
+
+
+remDr$navigate("https://results.baa.org/2023/?pid=start&pidp=start")
+
+
+# Select 1000 results per page
+
+men2024links <- c()
+women2024links <- c()
+allrunnerslinks <- c()
