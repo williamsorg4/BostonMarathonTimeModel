@@ -25,4 +25,15 @@ plot(test_complete$finish, predict(rf))
 
 filter(test, is.na(`Finish Net`))
 
-predict(rf, data.frame(fiveK=900))
+predictions <- tibble()
+i <- 860
+for(i in seq(from = 860, to = 3385, by = 5)){
+  temp <- tibble(fiveK=i, finish = predict(rf, data.frame(fiveK=i)))
+  predictions <- predictions %>% 
+    rbind(temp)
+}
+plot(predictions, type = 'l')
+  
+
+
+plot(t, type = 'l')

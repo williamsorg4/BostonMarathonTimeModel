@@ -43,26 +43,6 @@ women2024links <- c()
 allrunnerslinks <- c()
 
 
-getlinksmen <- function(){
-  athletes <- remDr$findElements(using = 'css selector', 
-                                 '.type-fullname a')
-  men2024links <<- append(men2024links, lapply(athletes, function(x) x$getElementAttribute("href") %>% unlist()))
-  nextpagebutton <- remDr$findElement(using = 'css selector',
-                    '.hidden-sm+ .pages-nav-button a')
-  nextpagebutton$clickElement()
-  Sys.sleep(3)
-  print("check")
-}
-getlinkswomen <- function(){
-  athletes <- remDr$findElements(using = 'css selector', 
-                                 '.type-fullname a')
-  women2024links <<- append(women2024links, lapply(athletes, function(x) x$getElementAttribute("href") %>% unlist()))
-  nextpagebutton <- remDr$findElement(using = 'css selector',
-                                      '.hidden-sm+ .pages-nav-button a')
-  nextpagebutton$clickElement()
-  Sys.sleep(3)
-  print("check")
-}
 getlinksall <- function(){
   athletes <- remDr$findElements(using = 'css selector', 
                                  '.type-fullname a')
@@ -73,13 +53,12 @@ getlinksall <- function(){
   Sys.sleep(3)
   print("check")
 }
-replicate(16, getlinksmen())
-replicate(11, getlinkswomen())
+
 replicate(30, getlinksall())
 
 results2024 <- tibble()
 
-allrunnerslinks[29330]
+
 i <- 0
 allrunnerslinks2 <- allrunnerslinks[23942:29330]
 for(link in allrunnerslinks2){
@@ -139,6 +118,7 @@ test <- results2024 %>%
 
 
 saveRDS(results2024, "results2024.rds")
+
 
 
 # 2023 --------------------------------------------------------------------
