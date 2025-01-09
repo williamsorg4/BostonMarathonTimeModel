@@ -21,7 +21,7 @@ result_links <- c("https://results.baa.org/2024/?pid=leaderboard&pidp=leaderboar
 
 
 rs_driver_object <- rsDriver(browser = "chrome",
-                             chromever = "128.0.6613.119",
+                             chromever = "130.0.6723.91",
                              verbose = FALSE, 
                              port = free_port())
 
@@ -42,7 +42,7 @@ men2024links <- c()
 women2024links <- c()
 allrunnerslinks <- c()
 
-
+# Function to get all athlete page links
 getlinksall <- function(){
   athletes <- remDr$findElements(using = 'css selector', 
                                  '.type-fullname a')
@@ -54,13 +54,14 @@ getlinksall <- function(){
   print("check")
 }
 
+# Run function until failure
 replicate(30, getlinksall())
 
 results2024 <- tibble()
 
 
+# Cycle through list of athlete pages
 i <- 0
-allrunnerslinks2 <- allrunnerslinks[23942:29330]
 for(link in allrunnerslinks2){
   page <- read_html(link)
   participant_tibble <- page %>% 
@@ -117,7 +118,7 @@ test <- results2024 %>%
   filter(is.na(test))
 
 
-saveRDS(results2024, "results2024.rds")
+saveRDS(results2024, "results2024_scraped.rds")
 
 
 
@@ -129,6 +130,144 @@ remDr$navigate("https://results.baa.org/2023/?pid=start&pidp=start")
 
 # Select 1000 results per page
 
-men2024links <- c()
-women2024links <- c()
 allrunnerslinks <- c()
+
+replicate(31, getlinksall())
+
+
+results2023 <- tibble()
+
+i <- 0
+
+for(link in allrunnerslinks){
+  page <- read_html(link)
+  participant_tibble <- page %>% 
+    html_nodes('table') %>% 
+    html_table() %>% 
+    .[[1]] %>% 
+    pivot_wider(names_from = X1, values_from = X2)
+  place_table <- page %>% 
+    html_nodes('table') %>% 
+    html_table() %>% 
+    .[[2]] %>% 
+    pivot_wider(names_from = X1, values_from = X2)
+  race_status <- page %>% 
+    html_nodes('table') %>% 
+    html_table() %>% 
+    .[[3]] %>% 
+    pivot_wider(names_from = X1, values_from = X2)
+  if (length(race_status) == 2){
+    race_status <- race_status %>% 
+      add_column(Status = NA)
+  }
+  identity_tibble <- participant_tibble %>% 
+    append(place_table) %>% 
+    append(race_status) %>% 
+    as_tibble()
+  splits_tibble <- page %>% 
+    html_nodes('table') %>% 
+    html_table() %>% 
+    .[[4]]
+  if (length(splits_tibble) == 5){
+    splits_tibble <- splits_tibble %>% 
+      add_column(`Time Of Day` = NA)
+  }
+  if (place_table$`Place (M/W)` == "DSQ"){
+    splits_tibble <- tibble(Split = NA,
+                            `Time Of Day` = NA,
+                            Time = NA,
+                            Diff = NA,
+                            `Min/mile` = NA,
+                            `Miles/h` = NA
+    )
+  }
+  athlete_tibble <- identity_tibble %>% 
+    append(splits_tibble) %>% 
+    as_tibble()
+  results2023 <- results2023 %>% 
+    rbind(athlete_tibble)
+  i <- i + 1
+  print(i)
+}
+
+saveRDS(results2023, "results2023.rds")
+
+
+# 2022 ---------------------------------------------------------------------
+
+# Used API
+
+# 2021 ---------------------------------------------------------------------
+
+remDr$navigate("https://boston.r.mikatiming.com/2021/?pidp=start")
+
+
+# Select 1000 results per page
+
+allrunnerslinks <- c()
+
+replicate(20, getlinksall())
+
+allrunnerslinks[1]
+
+
+results2021 <- tibble()
+
+i <- 0
+
+for(link in allrunnerslinks){
+  page <- read_html(link)
+  participant_tibble <- page %>% 
+    html_nodes('table') %>% 
+    html_table() %>% 
+    .[[1]] %>% 
+    pivot_wider(names_from = X1, values_from = X2)
+  place_table <- page %>% 
+    html_nodes('table') %>% 
+    html_table() %>% 
+    .[[2]] %>% 
+    pivot_wider(names_from = X1, values_from = X2)
+  race_status <- page %>% 
+    html_nodes('table') %>% 
+    html_table() %>% 
+    .[[3]] %>% 
+    pivot_wider(names_from = X1, values_from = X2)
+  if (length(race_status) == 2){
+    race_status <- race_status %>% 
+      add_column(Status = NA)
+  }
+  identity_tibble <- participant_tibble %>% 
+    append(place_table) %>% 
+    append(race_status) %>% 
+    as_tibble()
+  splits_tibble <- page %>% 
+    html_nodes('table') %>% 
+    html_table() %>% 
+    .[[4]]
+  if (length(splits_tibble) == 5){
+    splits_tibble <- splits_tibble %>% 
+      add_column(`Time Of Day` = NA)
+  }
+  if (place_table$`Place (M/W)` == "DSQ"){
+    splits_tibble <- tibble(Split = NA,
+                            `Time Of Day` = NA,
+                            Time = NA,
+                            Diff = NA,
+                            `Min/mile` = NA,
+                            `Miles/h` = NA
+    )
+  }
+  athlete_tibble <- identity_tibble %>% 
+    append(splits_tibble) %>% 
+    as_tibble()
+  results2021 <- results2021 %>% 
+    rbind(athlete_tibble)
+  i <- i + 1
+  print(i)
+}
+
+
+saveRDS(results2021, "results2021.rds")
+
+results2021 %>% 
+  count(`Race State`)
