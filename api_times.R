@@ -53,11 +53,11 @@ participants_db <- participants_db %>%
 
 # Get Race Splits
 splits <- tibble()
-for(i in seq(from = 1, to = nrow(participants_db)- 130, by = 130)){
-  if((i + 129) > nrow(participants_db)){
+for(i in seq(from = 1, to = nrow(participants_db)- 100, by = 100)){
+  if((i + 99) > nrow(participants_db)){
     end <- nrow(participants_db)
   } else {
-    end <- i + 129
+    end <- i + 99
   }
   pid <- participants_db$pid[i:end] %>% 
     paste0(collapse = ",")
@@ -114,11 +114,11 @@ for (i in seq(from = 1, to = 32000, by = 2000)){
 
 # Get Race Splits
 splits <- tibble()
-for(i in seq(from = 1, to = nrow(participants_db)- 130, by = 130)){
-  if((i + 129) > nrow(participants_db)){
+for(i in seq(from = 1, to = nrow(participants_db)- 100, by = 100)){
+  if((i + 99) > nrow(participants_db)){
     end <- nrow(participants_db)
   } else {
-    end <- i + 129
+    end <- i + 99
   }
   pid <- participants_db$pid[i:end] %>% 
     paste0(collapse = ",")
@@ -182,11 +182,11 @@ participants_db <- participants_db %>%
 
 # Get Race Splits
 splits <- tibble()
-for(i in seq(from = 1, to = nrow(participants_db)- 130, by = 130)){
-  if((i + 129) > nrow(participants_db)){
+for(i in seq(from = 1, to = nrow(participants_db)- 100, by = 100)){
+  if((i + 99) > nrow(participants_db)){
     end <- nrow(participants_db)
   } else {
-    end <- i + 129
+    end <- i + 99
   }
   pid <- participants_db$pid[i:end] %>% 
     paste0(collapse = ",")
@@ -247,11 +247,11 @@ for (i in seq(from = 1, to = 22000, by = 2000)){
 
 # Get Race Splits
 splits <- tibble()
-for(i in seq(from = 1, to = nrow(participants_db)- 130, by = 130)){
-  if((i + 129) > nrow(participants_db)){
+for(i in seq(from = 1, to = nrow(participants_db)- 100, by = 100)){
+  if((i + 99) > nrow(participants_db)){
     end <- nrow(participants_db)
   } else {
-    end <- i + 129
+    end <- i + 99
   }
   pid <- participants_db$pid[i:end] %>% 
     paste0(collapse = ",")

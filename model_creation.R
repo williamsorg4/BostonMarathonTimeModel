@@ -2,61 +2,51 @@ library(lubridate)
 library(randomForest)
 library(tidyverse)
 library(ranger)
-
+library("tidymodels")
 
 
 # 5k Finish Time Predictor ------------------------------------------------------------
 
-rf5ktime <- ranger(finish ~ age + sex + fiveK, data = runnerresults %>% filter(isTRUE(finisher)))
+rf5ktime <- ranger(FINISH ~ age + sex + class + fiveK, 
+                   data = runnerresults %>% 
+                     select(FINISH, age, sex, class, fiveK) %>% 
+                     remove_missing(),
+                   importance = 'permutation',
+                   scale.permutation.importance = TRUE)
+
+
+rf5ktime <- randomForest(FINISH ~ age + sex + class + fiveK,
+             data = runnerresults %>% 
+               select(FINISH, age, sex, class, fiveK) %>% 
+               remove_missing())
+
+
+# 10k Finish Time Predictor ------------------------------------------------------------
+
+rf10ktime <- randomForest(FINISH ~ age + sex + class + fiveK + tenK,
+                         data = runnerresults %>% 
+                           select(FINISH, age, sex, class, fiveK, tenK) %>% 
+                           remove_missing())
 
 
 
+# 15k Finish Time Predictor ------------------------------------------------------------
+
+rf15ktime <- ranger(FINISH ~ age + sex + class + fiveK + tenK + fifteenK,
+                          data = runnerresults %>% 
+                            select(FINISH, age, sex, class, fiveK, tenK, fifteenK) %>% 
+                            remove_missing())
 
 
 
+example <- runnerresults %>% 
+  filter(pid == "RBDGHF3W")
+
+predict(rf15ktime, 
+        data = example %>% 
+          select(FINISH, age, sex, class, fiveK, tenK, fifteenK)) %>% str()
+
+example$FINISH
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-test <- runnerresults %>% 
-  # filter(finish == 1) %>% 
-  tail(10000) %>% 
-  mutate(finish_time = max(time)) %>% 
-  select(-time, -distance) %>% 
-  pivot_wider(names_from = point, values_from = split) %>% 
-  filter(!is.na(fiveK) & !is.na(FINISH)) %>% 
-  ungroup() %>% 
-  mutate(finish = as.logical(finish))
-
-rf <- ranger(finish ~ age + sex + fiveK, data = test)
-
-
-runnerresults$finish %>% mean()
-ranger::predictions(rf, data = data)
-predict(rf, data = data, type = 'terminalNodes') %>% str() %>% 
-a$pred
-
-ranger::predictions(rf) %>% plot()
-10784/60
-
-importance(rf)
-varImpPlot(rf)
-
-data <- tibble(age = 44,
-               sex= "M",
-               fiveK = seconds(600))
-
-
+varImpPlot(rf15ktime)

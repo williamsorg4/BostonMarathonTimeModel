@@ -85,12 +85,16 @@ saveRDS(allresults, "allresults.rds")
 runnerresults <- allresults %>% 
   filter(division == "runner" & class != "para")
 
-
-test <- runnerresults %>% 
+# Pivot so each row is an athlete
+runnerresults <- runnerresults %>% 
   select(-distance, -bib_display) %>% 
   pivot_wider(names_from = point, values_from = time)
 
-test %>% 
-  filter(!FINISH)
+runnerresults <- runnerresults %>% 
+  mutate(class = gsub('[0-9]+', '', class))
+
+runnerresults <- runnerresults %>% 
+  ungroup()
+
 
 saveRDS(runnerresults, "runnerresults.rds")
