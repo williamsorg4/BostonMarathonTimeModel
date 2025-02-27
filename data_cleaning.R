@@ -96,5 +96,19 @@ runnerresults <- runnerresults %>%
 runnerresults <- runnerresults %>% 
   ungroup()
 
+runnerresults <- runnerresults %>% 
+  mutate(tenKSplit = tenK - fiveK,
+         fifteenKSplit = fifteenK - tenK,
+         twentyKSplit = twentyK - fifteenK,
+         HALFSplit = HALF - twentyK,
+         twentyfiveKSplit = twentyfiveK - HALF,
+         thirtyKSplit = thirtyK - twentyfiveK,
+         twentyMSplit = twentyM - thirtyK,
+         twentyoneMSplit = twentyoneM - twentyM,
+         thirtyfiveKSplit = thirtyfiveK - twentyoneM,
+         fortyKSplit = fortyK - thirtyfiveK,
+         twentyfivetwoMSplit = twentyfivetwoM - fortyK,
+         FINISHSplit = FINISH - twentyfivetwoM)
+
 
 saveRDS(runnerresults, "runnerresults.rds")
