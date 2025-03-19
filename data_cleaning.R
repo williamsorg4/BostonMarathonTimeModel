@@ -90,14 +90,19 @@ runnerresults <- runnerresults %>%
   select(-distance, -bib_display) %>% 
   pivot_wider(names_from = point, values_from = time)
 
+# Open classes aren't labelled every year
 runnerresults <- runnerresults %>% 
   mutate(class = gsub('[0-9]+', '', class))
 
+# This runner's first 5k doesn't make sense.
 runnerresults <- runnerresults %>% 
-  ungroup()
+  ungroup() %>% 
+  filter(pid != "REAJ6ZY2")
 
+# Add splits
 runnerresults <- runnerresults %>% 
-  mutate(tenKSplit = tenK - fiveK,
+  mutate(fiveKSplit = fiveK,
+         tenKSplit = tenK - fiveK,
          fifteenKSplit = fifteenK - tenK,
          twentyKSplit = twentyK - fifteenK,
          HALFSplit = HALF - twentyK,
@@ -110,5 +115,25 @@ runnerresults <- runnerresults %>%
          twentyfivetwoMSplit = twentyfivetwoM - fortyK,
          FINISHSplit = FINISH - twentyfivetwoM)
 
+# Create list of all pairs of splits
+split_cols <- names(runnerresults)[16:28]
+pairs <- combn(split_cols, 2, simplify = FALSE)
+
+
+# Create columns with time between split points
+runnerresults <- runnerresults %>%
+  bind_cols(
+    map_dfc(pairs, ~{
+      col1 <- .x[1]
+      col2 <- .x[2]
+      
+      # Calculate the difference for each pair and return as a column
+      diff_col <- runnerresults[[col2]] - runnerresults[[col1]]
+      set_names(data.frame(diff_col), paste(col1, "to", col2, sep = ""))
+    })
+  )
+
+runnerresults <- runnerresults %>% 
+  mutate_at(16:118,as.numeric)
 
 saveRDS(runnerresults, "runnerresults.rds")

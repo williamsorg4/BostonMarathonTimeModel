@@ -5,79 +5,72 @@ library(ranger)
 # Data Restriction --------------------------------------------------------------
 timeModelData <- runnerresults %>% 
   select(-c(fname, lname, division, city, country, country_iso)) %>% 
-  remove_missing() %>% 
-  filter(pid != "REAJ6ZY2")
+  remove_missing()
+
+selected <- sample(1:nrow(timeModelData), replace = FALSE, floor(nrow(timeModelData) * .7))
+traindata <- #timeModelData[selected, ]
+  timeModelData %>% filter(year != 2024)
+testdata <- #timeModelData[-selected,  ] # 
+  timeModelData %>% filter(year == 2024)
 
 
-# Hyperparameter Tuning -----------------------------------------------------
-# Base Model
-rf5ktime <- ranger(FINISH ~ age + sex + class + fiveK, 
-                   data = timeModelData,
-                   importance = 'permutation',
-                   scale.permutation.importance = TRUE,
-                   quantreg = TRUE,
-                   keep.inbag = TRUE,
-                   mtry = 4)
-rf5ktime$mtry
-rf5ktime$prediction.error %>% sqrt() / 60
-summary(rf5ktime$predictions) / 60
+# Finish Time Forests ------------------------------------------------------------------
+# Create list of all pairs of splits
+split_cols <- names(runnerresults)[16:28]
+pairs <- combn(split_cols, 2, simplify = FALSE)
 
-m1 <- lm(FINISH ~ age + sex + class + fiveK, 
-   data = timeModelData %>% 
-     mutate(FINISH = as.double(FINISH),
-            fiveK = as.double(fiveK)))
-
-
-
-summary(m1)
-hist(m1$residuals[-35475], breaks = 30)
-qqnorm(m1$residuals)
-qqline(m1$residuals)
-timeModelData$pid[35475]
-
-numtrees <- tibble()
-for (n in floor(seq(from = 100, to = 1000, length.out = 20))) {
-  rf5ktime <- ranger(FINISH ~ age + sex + class + fiveK, 
-                     data = runnerresults %>% 
-                       select(FINISH, age, sex, class, fiveK) %>% 
-                       remove_missing(),
-                     importance = 'permutation',
-                     scale.permutation.importance = TRUE,
-                     quantreg = TRUE,
-                     keep.inbag = TRUE,
-                     num.trees = n)
-  numtrees <- numtrees %>% rbind(tibble(trees = n,
-                                        oob = rf5ktime$prediction.error))
+rf_creation <- function(pairs, data) {    # pairs are split combinations and data is training data
+  # Select Independent Variables from column 10 (5k) up to current distance
+  independent_vars <- c(colnames(traindata)[10:which(colnames(traindata) == pairs[1])], 
+                        "age", "sex", "class")
+  n_features <- length(independent_vars)
+  
+  dependentvariable <- paste0(pairs[1], "to", pairs[2])     # time between pairs that's predicted
+  formula <- as.formula(paste(dependentvariable, "~", paste(independent_vars, collapse = " + ")))
+  
+  
+  assign(paste0("rf", pairs[1], "to", pairs[2], "time"),
+         ranger(formula,
+                data = data,
+                importance = 'permutation',
+                scale.permutation.importance = TRUE,
+                quantreg = TRUE,
+                keep.inbag = TRUE,
+                mtry = ceiling(n_features / 3)),
+         envir = globalenv())
+  print(paste0(pairs[1], "to", pairs[2]))
 }
 
+# Create all time models
+map(pairs, rf_creation, data = traindata)
 
-numtrees %>% 
-  ggplot(aes(x = trees, y = sqrt(oob))) +
-  geom_line()
+# Separate models for saving
+modelnames <- map(pairs, function(x) print(paste0("rf", x[1], "to", x[2], "time")))
+modelnames[!grepl("toFINISHtime", modelnames)] %>% 
+  unlist() %>% 
+  paste0(collapse = ", ")
+
+save(rffiveKtoFINISHtime, rftenKtoFINISHtime, rffifteenKtoFINISHtime, rftwentyKtoFINISHtime, rfHALFtoFINISHtime, rftwentyfiveKtoFINISHtime, 
+     rfthirtyKtoFINISHtime, rftwentyMtoFINISHtime, rftwentyoneMtoFINISHtime, rfthirtyfiveKtoFINISHtime, rffortyKtoFINISHtime, rftwentyfivetwoMtoFINISHtime,
+     file = "finish_time_models.RData")
+
+save(rffiveKtotenKtime, rffiveKtofifteenKtime, rffiveKtotwentyKtime, rffiveKtoHALFtime, rffiveKtotwentyfiveKtime, rffiveKtothirtyKtime, 
+     rffiveKtotwentyMtime, rffiveKtotwentyoneMtime, rffiveKtothirtyfiveKtime, rffiveKtofortyKtime, rffiveKtotwentyfivetwoMtime, 
+     rftenKtofifteenKtime, rftenKtotwentyKtime, rftenKtoHALFtime, rftenKtotwentyfiveKtime, rftenKtothirtyKtime, rftenKtotwentyMtime, 
+     rftenKtotwentyoneMtime, rftenKtothirtyfiveKtime, rftenKtofortyKtime, rftenKtotwentyfivetwoMtime, rffifteenKtotwentyKtime, 
+     rffifteenKtoHALFtime, rffifteenKtotwentyfiveKtime, rffifteenKtothirtyKtime, rffifteenKtotwentyMtime, rffifteenKtotwentyoneMtime, 
+     rffifteenKtothirtyfiveKtime, rffifteenKtofortyKtime, rffifteenKtotwentyfivetwoMtime, rftwentyKtoHALFtime, rftwentyKtotwentyfiveKtime, 
+     rftwentyKtothirtyKtime, rftwentyKtotwentyMtime, rftwentyKtotwentyoneMtime, rftwentyKtothirtyfiveKtime, rftwentyKtofortyKtime, 
+     rftwentyKtotwentyfivetwoMtime, rfHALFtotwentyfiveKtime, rfHALFtothirtyKtime, rfHALFtotwentyMtime, rfHALFtotwentyoneMtime, 
+     rfHALFtothirtyfiveKtime, rfHALFtofortyKtime, rfHALFtotwentyfivetwoMtime, rftwentyfiveKtothirtyKtime, rftwentyfiveKtotwentyMtime, 
+     rftwentyfiveKtotwentyoneMtime, rftwentyfiveKtothirtyfiveKtime, rftwentyfiveKtofortyKtime, rftwentyfiveKtotwentyfivetwoMtime, 
+     rfthirtyKtotwentyMtime, rfthirtyKtotwentyoneMtime, rfthirtyKtothirtyfiveKtime, rfthirtyKtofortyKtime, rfthirtyKtotwentyfivetwoMtime, 
+     rftwentyMtotwentyoneMtime, rftwentyMtothirtyfiveKtime, rftwentyMtofortyKtime, rftwentyMtotwentyfivetwoMtime, rftwentyoneMtothirtyfiveKtime, 
+     rftwentyoneMtofortyKtime, rftwentyoneMtotwentyfivetwoMtime, rfthirtyfiveKtofortyKtime, rfthirtyfiveKtotwentyfivetwoMtime, rffortyKtotwentyfivetwoMtime,
+     file = "split_time_models.RData")
 
 
-# 5k Forests ------------------------------------------------------------
-# Time Predictor
-
-
-
-
-min(rf5ktime$predictions - (runnerresults %>% 
-  select(FINISH, age, sex, class, fiveK) %>% 
-  remove_missing() %>% 
-  pull(FINISH)))
-
--13383.95 / 60
-
-rf10ktime$prediction.error %>% 
-  sqrt() / 60
-
-timeModelData %>% 
-  mutate(extra = abs(as.numeric(tenKSplit * 8.439 - FINISH))) %>% 
-  pull(extra) %>% 
-  mean() / 60
-
-# Finish or not
+# Finish or not ----------------------------------------------------------------
 rf5kfinisher <- ranger(finisher ~ age + sex + class + fiveK,
                              data = runnerresults %>% 
                                select(finisher, age, sex, class, fiveK) %>% 
@@ -87,67 +80,12 @@ rf5kfinisher <- ranger(finisher ~ age + sex + class + fiveK,
 
 
 
-# 10k Finish Time Predictor ------------------------------------------------------------
-
-rf10ktime <- ranger(FINISH ~ age + sex + class + fiveK + tenKSplit,
-                    data = timeModelData,
-                    importance = 'permutation',
-                    scale.permutation.importance = TRUE,
-                    quantreg = TRUE,
-                    keep.inbag = TRUE,
-                    na.action = 'na.omit')
-
-
-# 15k Finish Time Predictor ------------------------------------------------------------
-
-rf15ktime <- ranger(FINISH ~ age + sex + class + fiveK + tenK + fifteenK,
-                     data = runnerresults %>% 
-                       select(FINISH, age, sex, class, fiveK, tenK, fifteenK) %>% 
-                       remove_missing(),
-                     importance = 'permutation',
-                     scale.permutation.importance = TRUE,
-                     quantreg = TRUE,
-                     keep.inbag = TRUE)
-
-
-
-# 20k Finish Time Predictor -------------------------------------------------
-
-rf20ktime <- ranger(FINISH ~ age + sex + class + fiveK + tenK + fifteenK + twentyK,
-                    data = runnerresults %>% 
-                      select(FINISH, age, sex, class, fiveK, tenK, fifteenK, twentyK) %>% 
-                      remove_missing(),
-                    importance = 'permutation',
-                    scale.permutation.importance = TRUE,
-                    quantreg = TRUE,
-                    keep.inbag = TRUE)
-
-
-rf25mtime <- ranger(FINISH ~ age + sex + class + fiveK + tenK + fifteenK + twentyK + 
-                      HALF + twentyfiveK + thirtyK + twentyM + twentyoneM + thirtyfiveK +
-                      fortyK + twentyfivetwoM,
-                    data = timeModelData,
-                    importance = 'permutation',
-                    scale.permutation.importance = TRUE,
-                    quantreg = TRUE,
-                    keep.inbag = TRUE)
-rf25mtime2 <- ranger(FINISH ~ age + sex + class + fiveK + tenKSplit + fifteenKSplit + twentyKSplit + 
-                      HALFSplit + twentyfiveKSplit + thirtyKSplit + twentyMSplit + twentyoneMSplit + thirtyfiveKSplit +
-                      fortyKSplit + twentyfivetwoMSplit + tenK + fifteenK + twentyK + 
-                       HALF + twentyfiveK + thirtyK + twentyM + twentyoneM + thirtyfiveK +
-                       fortyK + twentyfivetwoM,
-                    data = timeModelData,
-                    importance = 'permutation',
-                    scale.permutation.importance = TRUE,
-                    quantreg = TRUE,
-                    keep.inbag = TRUE)
-
-rf25mtime$prediction.error %>% sqrt()
 
 
 
 
-importance(rf25mtime)
+
+importance(rf30ktime)
 
 example <- runnerresults %>% 
   filter(pid == "R234TNAW")
@@ -166,8 +104,6 @@ prediction <- predict(rf15ktime,
 prediction$predictions
 
 
-rf15ktime$variable.importance
-example$FINISH
 
 
 # Finish or Not --------------------------------------------------------------------
