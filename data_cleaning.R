@@ -136,4 +136,5 @@ runnerresults <- runnerresults %>%
 runnerresults <- runnerresults %>% 
   mutate_at(16:118,as.numeric)
 
+
 saveRDS(runnerresults, "runnerresults.rds")

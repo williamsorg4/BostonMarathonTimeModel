@@ -1,11 +1,13 @@
 library(lubridate)
 library(tidyverse)
 library(ranger)
+library(Metrics)
 
 # Data Restriction --------------------------------------------------------------
 timeModelData <- runnerresults %>% 
   select(-c(fname, lname, division, city, country, country_iso)) %>% 
-  remove_missing()
+  remove_missing() %>% 
+  filter(sex != "X")
 
 selected <- sample(1:nrow(timeModelData), replace = FALSE, floor(nrow(timeModelData) * .7))
 traindata <- #timeModelData[selected, ]
@@ -21,7 +23,7 @@ pairs <- combn(split_cols, 2, simplify = FALSE)
 
 rf_creation <- function(pairs, data) {    # pairs are split combinations and data is training data
   # Select Independent Variables from column 10 (5k) up to current distance
-  independent_vars <- c(colnames(traindata)[10:which(colnames(traindata) == pairs[1])], 
+  independent_vars <- c(colnames(data)[10:which(colnames(data) == pairs[1])], 
                         "age", "sex", "class")
   n_features <- length(independent_vars)
   
@@ -42,7 +44,7 @@ rf_creation <- function(pairs, data) {    # pairs are split combinations and dat
 }
 
 # Create all time models
-map(pairs, rf_creation, data = traindata)
+map(pairs, rf_creation, data = timeModelData)
 
 # Separate models for saving
 modelnames <- map(pairs, function(x) print(paste0("rf", x[1], "to", x[2], "time")))
@@ -70,6 +72,16 @@ save(rffiveKtotenKtime, rffiveKtofifteenKtime, rffiveKtotwentyKtime, rffiveKtoHA
      file = "split_time_models.RData")
 
 
+test <- ranger(FINISH ~ age + sex + class,
+       data = traindata,
+       importance = 'permutation',
+       scale.permutation.importance = TRUE,
+       quantreg = TRUE,
+       keep.inbag = TRUE,
+       mtry = ceiling(3 / 3))
+
+prediction <- predict(test, testdata)
+mean(abs(prediction$predictions - testdata$FINISH)) / 60
 # Finish or not ----------------------------------------------------------------
 rf5kfinisher <- ranger(finisher ~ age + sex + class + fiveK,
                              data = runnerresults %>% 
