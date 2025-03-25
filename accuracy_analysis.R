@@ -1,5 +1,7 @@
 library(tidyverse)
 library(ggthemes)
+library(ranger)
+library(Metrics)
 
 # Get data -----------------------------------------------------------------------
 timeModelData <- runnerresults %>% 
@@ -114,3 +116,27 @@ elite_rmse %>%
   ggplot(aes(x = distance, y = rmse, color = method)) + 
   geom_line() +
   theme_minimal()
+
+
+# Error Histograms
+rf5kerror <- (predict(rffiveKtoFINISHtime, data = testdata, type = 'quantiles', quantiles = c(0.05, 0.125, 0.5, 0.875, 0.95))$predictions[,3] + testdata$fiveK - testdata$FINISH) / 60
+extraperror <- (testdata$fiveK*42164.81/5000 - testdata$FINISH) / 60
+
+rf5kerror %>% 
+  as_tibble() %>% 
+  ggplot(aes(x = value)) +
+  geom_histogram() +
+  theme_minimal()
+
+
+extraperror %>% 
+  as_tibble() %>% 
+  ggplot(aes(x = value)) +
+  geom_histogram() +
+  theme_minimal()
+
+
+tibble(rf5kerror = rf5kerror,
+       extraperror = extraperror) %>% 
+  pivot_longer(cols = 1:2, names_to = 'method', values_to = 'error')
+  
