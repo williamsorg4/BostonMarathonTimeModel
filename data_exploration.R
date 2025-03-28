@@ -1,6 +1,8 @@
 library(tidyverse)
 library(lubridate)
 library(ggthemes)
+library(XML)
+library(PrettyCols)
 
 timeModelData <- runnerresults %>% 
   select(-c(fname, lname, division, city, country, country_iso)) %>% 
@@ -11,6 +13,9 @@ split_distance <- tibble(split = c("fiveK", "tenK", "fifteenK", "twentyK", "HALF
                                    "thirtyK", "twentyM", "twentyoneM", "thirtyfiveK", "fortyK", "twentyfivetwoM", "FINISH"),
                          distance = c(5000, 10000, 15000, 20000, 21082.41, 25000, 30000, 32186.9, 33796.2, 
                                       35000, 40000, 40555.47, 42164.81))
+
+colorscheme <- as.vector(prettycols("Bold"))
+colorscheme[3] <- "#f38f1d"
 
 # Time Model Dependent Variables --------------------------------------------------
 # Age
@@ -60,19 +65,62 @@ timeModelData %>%
   xlab("Time at Checkpoint (hrs)") +
   theme_minimal()
 
-# Average 5k Splits
+# Average 5k Splits --------------------------------------------------
 timeModelData %>% 
   summarise(across(c(10:13, 15:16, 19:20), mean)) %>% 
   pivot_longer(cols = 1:8, names_to = "split", values_to = "avg_time") %>% 
   left_join(split_distance) %>% 
   mutate(avg_time = avg_time - lag(avg_time, default = 0)) %>% 
   ggplot(aes(x = distance, y = avg_time)) +
-  geom_point(col = "#A51C30") +
-  geom_line(col = "#A51C30") +
+  geom_point(col = colorscheme[2], size = 3) +
+  geom_line(col = colorscheme[2], linewidth = 2) +
   xlab("Distance") +
   ylab("Average 5k Split Time (min)") +
   scale_y_time(labels = function(x) strftime(x, "%M:%S")) +
   scale_x_continuous(labels = function(x) paste0(substr(x, 1, 2), "k")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.title = element_text(size = 22),
+        axis.text = element_text(size = 18),
+        panel.background = element_rect(fill = "white", color = 'white'),
+        plot.background = element_rect(fill = "white", color = 'white'),
+        panel.grid.minor = element_blank(),
+        plot.margin = margin(5, 5, 5, 10))
 
 
+ggsave("averageSplits.png", width = 12, height = 5, unit = 'in')
+
+
+# Marathon Course Elevation ------------------------------------------
+course_dataframe <- tibble()
+gpx_course_function <- function(x, y){
+  gpx_parsed <- htmlTreeParse(file = x, useInternalNodes = TRUE)
+  coords <- xpathSApply(doc = gpx_parsed, path = "//trkpt", fun = xmlAttrs)
+  elevation <- xpathSApply(doc = gpx_parsed, path = "//trkpt/ele", fun = xmlValue)
+  course_dataframe <<- tibble(
+    lat = as.numeric(coords["lat", ]),
+    lon = as.numeric(coords["lon", ]),
+    elevation = as.numeric(elevation)) %>% 
+    mutate(race = y) %>% 
+    rbind(course_dataframe)
+}
+
+gpx_course_function("Boston Marathon 2023.gpx", "Boston")
+
+course_dataframe %>% 
+  reframe(lat, lon, elevation, race, count = n()) %>% 
+  mutate(row = row_number(),
+         distance = 42.2 / count * row) %>% 
+  ggplot(aes(x = distance, y = elevation, group = race)) +
+  geom_line(color = colorscheme[2], linewidth = 2) +
+  xlab("Distance (km)") +
+  ylab("Elevation (m)") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = 22),
+        axis.text = element_text(size = 18),
+        panel.background = element_rect(fill = "white", color = 'white'),
+        plot.background = element_rect(fill = "white", color = 'white'),
+        panel.grid.minor = element_blank(),
+        legend.position = 'none',
+        plot.margin = margin(10, 5, 10, 5))
+
+ggsave("courseElevation.png", width = 12, height = 4, unit = 'in')
