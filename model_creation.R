@@ -72,16 +72,20 @@ save(rffiveKtotenKtime, rffiveKtofifteenKtime, rffiveKtotwentyKtime, rffiveKtoHA
      file = "split_time_models.RData")
 
 
-test <- ranger(FINISH ~ age + sex + class,
-       data = traindata,
-       importance = 'permutation',
-       scale.permutation.importance = TRUE,
-       quantreg = TRUE,
-       keep.inbag = TRUE,
-       mtry = ceiling(3 / 3))
+# Goal Predictor Model -----------------------------------------------
 
-prediction <- predict(test, testdata)
-mean(abs(prediction$predictions - testdata$FINISH)) / 60
+for (split in split_cols[c(1:7, 10:11)]) {
+  assign(paste0("rfFINISHto", split), 
+         ranger(get(split) ~ age + sex + class + FINISH, data = timeModelData, num.trees = 200))
+  print(paste0("rfFINISHto", split))
+}
+
+save(rfFINISHtofiveK, rfFINISHtotenK, rfFINISHtofifteenK, rfFINISHtotwentyK, 
+     rfFINISHtoHALF, rfFINISHtotwentyfiveK, rfFINISHtothirtyK,rfFINISHtothirtyfiveK, 
+     rfFINISHtofortyK,
+     file = "goal_time_models.RData")
+
+
 # Finish or not ----------------------------------------------------------------
 rf5kfinisher <- ranger(finisher ~ age + sex + class + fiveK,
                              data = runnerresults %>% 
