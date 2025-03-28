@@ -112,7 +112,7 @@ method_rmse %>%
         panel.grid.minor = element_blank()) +
   guides(linetype = 'none')
 
-ggsave("methodAccuracy.png", width = 17, height = 8, unit = 'in')
+ggsave("methodAccuracy.png", width = 17, height = 8, unit = 'in', dpi = 2000)
 
 
 # Elite RMSE Error Plot -------------------------------------------
@@ -153,7 +153,7 @@ errorTable %>%
         panel.grid.minor = element_blank(),
         strip.text = element_text(size = 18))
 
-ggsave("errorHistogram.png", width = 9, height = 4, unit = 'in')
+ggsave("errorHistogram.png", width = 9, height = 4, unit = 'in', dpi = 2000)
 
 
 
@@ -272,7 +272,7 @@ avg_predictions %>%
         panel.grid.minor = element_blank(),
         legend.position = 'none')
 
-ggsave("avgPrediction.png", width = 14, height = 8, unit = 'in')
+ggsave("avgPrediction.png", width = 14, height = 8, unit = 'in', dpi = 2000)
 
 
 

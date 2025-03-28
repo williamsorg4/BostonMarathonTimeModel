@@ -123,4 +123,4 @@ course_dataframe %>%
         legend.position = 'none',
         plot.margin = margin(10, 5, 10, 5))
 
-ggsave("courseElevation.png", width = 12, height = 4, unit = 'in')
+ggsave("courseElevation.png", width = 12, height = 4, unit = 'in', dpi = 1800)
