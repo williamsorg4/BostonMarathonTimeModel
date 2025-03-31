@@ -80,9 +80,11 @@ for (split in split_cols[c(1:7, 10:11)]) {
   print(paste0("rfFINISHto", split))
 }
 
+rfGoalTimeFortyKtoFINISH <- ranger(fortyKtoFINISH ~ ., data = timeModelData[, c(split_cols[c(1:7, 10:11)], "fortyKtoFINISH")], num.trees = 200, mtry = 3)
+
 save(rfFINISHtofiveK, rfFINISHtotenK, rfFINISHtofifteenK, rfFINISHtotwentyK, 
      rfFINISHtoHALF, rfFINISHtotwentyfiveK, rfFINISHtothirtyK,rfFINISHtothirtyfiveK, 
-     rfFINISHtofortyK,
+     rfFINISHtofortyK, rfGoalTimeFortyKtoFINISH,
      file = "goal_time_models.RData")
 
 

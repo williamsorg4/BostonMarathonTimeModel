@@ -2,6 +2,7 @@ library(shiny)
 library(bslib)
 library(shinyTime)
 library(hms)
+library("bsicons")
 
 leaders_card <- function(group) {
   card(
@@ -15,6 +16,7 @@ navbarPage(
   "2025 Boston Marathon",   
   tabPanel(
     "Leaders", 
+    icon = bs_icon("list-ol"),
     leaders_card("Top Men"),
     leaders_card("Top Women"),
     leaders_card("Top Women"),
@@ -23,6 +25,7 @@ navbarPage(
   
   tabPanel(
     "Search",
+    icon = bs_icon("search"),
     layout_columns(
       card(
         card_title("Search")
@@ -37,6 +40,7 @@ navbarPage(
   
   tabPanel(
     "Goal Predictor",
+    icon = bs_icon("graph-up"),
     layout_columns(
       card(
         card_title("Input"),
@@ -48,15 +52,27 @@ navbarPage(
       ),
       card(
         card_title("Predictor"),
-        plotlyOutput("goalTimePlot")
+        layout_columns(
+          value_box(
+            title = "Half Marathon Split", 
+            value = textOutput("GPHalfTime"),
+            showcase = 
+          ), 
+          value_box(
+            title = "Finish Time",
+            value = textOutput("GPFinish")
+          )
+          ),
+        plotlyOutput("goalTimePlot"),
+        tableOutput("goaltimeData")
         
       ),
       col_widths = c(4, 8)
       )
     ),
-  navbarMenu("More", 
-             tabPanel("Course", "four-a"),
-             tabPanel("Methodology", "four-b"),
+  navbarMenu("More",
+             tabPanel("Course"),
+             tabPanel("Methodology"),
              tabPanel("Citations")
   ),
   
