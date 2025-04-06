@@ -2,7 +2,12 @@ library(shiny)
 library(bslib)
 library(shinyTime)
 library(hms)
-library("bsicons")
+library(bsicons)
+library(lubridate)
+library(plotly)
+library(tidyverse)
+library(ranger)
+
 
 leaders_card <- function(group) {
   card(

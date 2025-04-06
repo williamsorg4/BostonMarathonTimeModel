@@ -1,0 +1,12 @@
+name: BostonMarathonPredictions
+title: BostonMarathonPredictions
+username: wsorganalytics
+account: wsorganalytics
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14380685
+bundleId: 10029538
+url: https://wsorganalytics.shinyapps.io/BostonMarathonPredictions/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

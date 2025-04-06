@@ -1,17 +1,19 @@
 library(shiny)
+library(bslib)
+library(shinyTime)
+library(hms)
+library(bsicons)
+library(lubridate)
 library(plotly)
 library(tidyverse)
 library(ranger)
-library(ggforce)
-library(lubridate)
-
 
 
 
 
 # Load Data --------------------------------------------------------
-runnerresults <- readRDS("~/R/Boston Marathon Time Model/Data/runnerresults.rds")
-load("~/R/Boston Marathon Time Model/Models/goal_time_models.RData")
+runnerresults <- readRDS("runnerresults.rds")
+load("goal_time_models.RData")
 
 
 # Create Data --------------------------------------------------------

@@ -38,12 +38,12 @@ rf_creation <- function(pairs, data) {    # pairs are split combinations and dat
                 scale.permutation.importance = TRUE,
                 quantreg = TRUE,
                 keep.inbag = TRUE,
-                mtry = ceiling(n_features / 3)),
+                mtry = ceiling(n_features / 3),
+                num.trees = 200),
          envir = globalenv())
   print(paste0(pairs[1], "to", pairs[2]))
 }
 
-# Create all time models
 map(pairs, rf_creation, data = timeModelData)
 
 # Separate models for saving
