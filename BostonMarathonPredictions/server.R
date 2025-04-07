@@ -14,6 +14,7 @@ library(ranger)
 # Load Data --------------------------------------------------------
 runnerresults <- readRDS("runnerresults.rds")
 load("goal_time_models.RData")
+course_dataframe <- readRDS("course_datafram.rds")
 
 
 # Create Data --------------------------------------------------------

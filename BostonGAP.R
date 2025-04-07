@@ -46,14 +46,57 @@ course_dataframe <- course_dataframe %>%
 
 course_dataframe$pace_adjustment <- predict(gapmodel, course_dataframe$grade)
 
-# ------
+saveRDS(course_dataframe, "course_dataframe.rds")
+
+
+# Calculate Predictions ------------------------------------
 mean_adjustment <- course_dataframe$pace_adjustment %>% mean(na.rm = TRUE)
 
-goal_time <- hms("2:40:00")
+goal_time <- lubridate::hms("2:40:00")
+
+
 grade_adjusted_time <- as.numeric(seconds(goal_time)) / mean_adjustment
 
 grade_adjusted_time_per_segment <- grade_adjusted_time / (nrow(course_dataframe) - 1)
 
+ideal_pace_df <- course_dataframe %>% 
+  mutate(segment_time = pace_adjustment * grade_adjusted_time_per_segment) %>% 
+  .[-1, ]
 
-(grade_adjusted_time_per_segment * (course_dataframe$pace_adjustment [-1]))[81:160] %>% sum()
-1138.447 / 60
+ideal_pace_df <- ideal_pace_df %>% 
+  mutate(fiveKgroup = rep(1:(nrow(ideal_pace_df) %/% 80 + 1), each = 80, length.out = nrow(ideal_pace_df)),
+         twoMilegroup = rep(1:(nrow(ideal_pace_df) %/% 51 + 1), each = 51, length.out = nrow(ideal_pace_df)))
+
+
+ideal_pace_df <- ideal_pace_df %>% 
+  summarise(split = sum(segment_time), .by = fiveKgroup) %>% 
+  .[-9, ]
+
+ideal_pace_df <- ideal_pace_df %>% 
+  mutate(pacekm = split / 5,
+         pacemi = split / 3.10686)
+
+
+slowest <- min(ideal_pace_df$split)
+fastest <- max(ideal_pace_df$split)
+
+
+# Fivek Splits 
+ideal_pace_df %>% 
+  mutate(time_rev = slowest * 1.25 - split) %>% 
+  ggplot(aes(x = fiveKgroup, y = time_rev, fill = split)) +
+  geom_col() +
+  scale_y_continuous(limits = c(0, 1.5 * (slowest * 1.25 - fastest)),
+                     labels = function(x) {
+                       unround <- (-x + slowest * 1.25)
+                       unround
+                       paste0(unround %/% 60, ":", round((unround %% 60)))
+                     }
+  ) +
+  scale_x_continuous(labels = function(x) paste0(substr(x * 5, 1, 2), "k")) +
+  xlab("") +
+  ylab("") +
+  theme_minimal() +
+  theme(legend.position = 'none',
+        panel.grid.minor = element_blank())
+

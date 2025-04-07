@@ -18,31 +18,16 @@ leaders_card <- function(group) {
 
 navbarPage(
   theme = bs_theme(bootswatch = 'minty'),
-  "2025 Boston Marathon",   
+  "2025 Boston Marathon", 
   tabPanel(
-    "Leaders", 
-    icon = bs_icon("list-ol"),
-    leaders_card("Top Men"),
-    leaders_card("Top Women"),
-    leaders_card("Top Women"),
-    leaders_card("Top Women"),
-    ),
-  
-  tabPanel(
-    "Search",
-    icon = bs_icon("search"),
+    "Ideal Splits Generator",
+    icon = bs_icon("stopwatch"),
     layout_columns(
       card(
-        card_title("Search")
-        ),
-      card(
-        card_title("Results")
-        ),
-      
-      col_widths = c(4, 8)
+        card_title("Input")
       )
-    ),
-  
+    )
+  ),
   tabPanel(
     "Goal Predictor",
     icon = bs_icon("graph-up"),
@@ -75,10 +60,9 @@ navbarPage(
       col_widths = c(4, 8)
       )
     ),
-  navbarMenu("More",
-             tabPanel("Course"),
-             tabPanel("Methodology"),
-             tabPanel("Citations")
+  tabPanel(
+    "Methodology",
+    icon = bs_icon("journal-text")
   ),
   
   
