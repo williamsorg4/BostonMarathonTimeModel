@@ -52,7 +52,7 @@ saveRDS(course_dataframe, "course_dataframe.rds")
 # Calculate Predictions ------------------------------------
 mean_adjustment <- course_dataframe$pace_adjustment %>% mean(na.rm = TRUE)
 
-goal_time <- lubridate::hms("2:40:00")
+goal_time <- lubridate::hms("3:00:00")
 
 
 grade_adjusted_time <- as.numeric(seconds(goal_time)) / mean_adjustment
@@ -83,20 +83,37 @@ fastest <- max(ideal_pace_df$split)
 
 # Fivek Splits 
 ideal_pace_df %>% 
-  mutate(time_rev = slowest * 1.25 - split) %>% 
+  mutate(time_rev = slowest * 1.25 - split,
+         text = paste(hms(round(split)) %>% 
+                        gsub("^00:", "", .) %>% 
+                        gsub("^0", "", .))) %>% 
   ggplot(aes(x = fiveKgroup, y = time_rev, fill = split)) +
   geom_col() +
   scale_y_continuous(limits = c(0, 1.5 * (slowest * 1.25 - fastest)),
                      labels = function(x) {
                        unround <- (-x + slowest * 1.25)
-                       unround
-                       paste0(unround %/% 60, ":", round((unround %% 60)))
+                       paste(hms(round(unround))) %>% 
+                         gsub("^00:", "", .) %>% 
+                         gsub("^0", "", .)
                      }
   ) +
   scale_x_continuous(labels = function(x) paste0(substr(x * 5, 1, 2), "k")) +
+  scale_fill_gradient(low = "#90caf9", high = "#0d47a1") +
   xlab("") +
   ylab("") +
   theme_minimal() +
   theme(legend.position = 'none',
         panel.grid.minor = element_blank())
 
+
+ideal_pace_df %>% 
+  mutate(Distance = paste0(fiveKgroup * 5, "k"),
+         `Split Time` = paste(hms(round(split)) %>% 
+                                gsub("^00:", "", .) %>% 
+                                gsub("^0", "", .)),
+         `Pace (km)` = sprintf("%d:%02d", (pacekm %/% 60), as.integer(pacekm %% 60)),
+         `Pace (mi)` = sprintf("%d:%02d", (pacemi %/% 60), as.integer(pacemi %% 60)),
+         `Total Time` = paste(hms(round(cumsum(split)))) %>% 
+           gsub("^00:", "", .) %>% 
+           gsub("^0", "", .)) %>% 
+  select(Distance, `Split Time`, `Pace (km)`, `Pace (mi)`, `Total Time`)

@@ -5,7 +5,7 @@ account: wsorganalytics
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14380685
-bundleId: 10029538
+bundleId: 10068188
 url: https://wsorganalytics.shinyapps.io/BostonMarathonPredictions/
 version: 1
 asMultiple: FALSE
