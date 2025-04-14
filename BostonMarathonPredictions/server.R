@@ -10,7 +10,6 @@ library(readr)
 
 
 
-
 # Load Data --------------------------------------------------------
 runnerresults <- readRDS(url("https://github.com/williamsorg4/BostonMarathonTimeModel/raw/main/Data/runnerresults.rds"))
 load("goal_time_models.RData")
